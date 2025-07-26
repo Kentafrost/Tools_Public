@@ -138,7 +138,6 @@ if __name__ == "__main__":
         result = list(executor.map(parallel_process_sheet, sheet_name_list))
         # Get the result from the future
         logging.info(f"Processing {sheet} in parallel.")
-        list = main(sheet, workbook, remote_chk)
         
     msg_list.append(r[0] for r in result)
     folder_list.append(r[1] for r in result)
