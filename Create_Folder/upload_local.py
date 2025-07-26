@@ -1,7 +1,4 @@
 import logging
-import gspread
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 import os, re, shutil
 import common_tool
 import boto3
@@ -12,23 +9,6 @@ def folder_path_create(sheet_name, chara_name, base_folder, workbook):
     
     # to retrive data from SSM, use worksheets index
     ssm_client = boto3.client('ssm', region_name='ap-southeast-2')
-    worksheets = workbook.worksheets()
-    sheet_index = None
-    
-    for idx, sheet in enumerate(worksheets):
-        if sheet.title == sheet_name:
-            sheet_index = idx
-            break
-    
-    if sheet_index is not None:
-        sheet_index = sheet_index + 1  # Adjust index to match SSM parameter naming convention
-        
-        try:
-            title = ssm_client.get_parameter(Name=f'Title{sheet_index}', WithDecryption=True)['Parameter']['Value']    
-        except Exception as e:
-            print(f"Error retrieving title from SSM: {e}")
-            print("Stop the process.")
-            os._exit(1)
     
     title5 = ssm_client.get_parameter(Name='Title5', WithDecryption=True)['Parameter']['Value']
     title8 = ssm_client.get_parameter(Name='Title8', WithDecryption=True)['Parameter']['Value']
@@ -79,14 +59,12 @@ def folder_path_create(sheet_name, chara_name, base_folder, workbook):
     #     chara_name = match.group(1) if match else ""
     #     chara_name = re.sub(r"\(.*?\)", "", chara_name)
 
-
     # destination_folder = f'{base_folder}\{chara_name}'
     # destination_folder = destination_folder.replace(" ", "")
-
-
-
+    
 # create folder, if it exists already, then nothing happens. Files in a folder untouched
 def create_folder(folder_path):
+    
     print('--------------------------------')
     print(f'Folder name: {folder_path}')
     print('--------------------------------')
@@ -95,8 +73,9 @@ def create_folder(folder_path):
 
     try:
         os.makedirs(rf"{folder_path}", exist_ok=True)
+        logging.info(f"Folder created: {folder_path}")
     except Exception as e:
-        print(f"Error creating folder: {e}")
+        logging.error(f"Error creating folder: {e}")
 
 
 # move the file to the destination folder and rename it if necessary
@@ -105,11 +84,7 @@ def move_and_rename_file(src_file, chara_name, dest_folder):
     time.sleep(0.5)
     # Get the original file name and extension
     file_name, file_extension = os.path.splitext(os.path.basename(src_file))
-    logging.info(f"Original file name: {file_name}, Extension: {file_extension}")
-    logging.info(f"Destination folder: {dest_folder}")
- 
     dest_path = os.path.join(dest_folder, file_name + file_extension)
-    logging.info(f"Destination path: {dest_path}")
 
     # Check if a file with the same name already exists
     count = 1
@@ -134,6 +109,7 @@ def move_and_rename_file(src_file, chara_name, dest_folder):
 # extract, adjust words to make folder path
 # Move To folder if mp4 video already exists
 def move_to_folder(dest_directory, charaname, extension):
+    
     dest_directory = f"{dest_directory}\\"
     
     if not os.path.exists(dest_directory): # Ensure the destination folder exists
@@ -146,15 +122,14 @@ def move_to_folder(dest_directory, charaname, extension):
     try:
         for filename in os.listdir(source_fold):
             if filename.endswith(extension):
-                chk_name = filename.replace(extension, "") # with no extension
+                chk_name = filename.replace(extension, "")
                 print(f"charaname: {chk_name} in {charaname}")
                 
                 # check if files name ends with mp4 includes characters name in csv name
                 if charaname in chk_name: 
                     print(f"Found file: {filename}")
-                    source_file = f'{source_fold}\{filename}' # files path where you want to move from
+                    source_file = f'{source_fold}\{filename}'
                     
-                    # delete some words in the filename such as " - Made with Clipchamp"
                     filename = common_tool.name_converter(source_fold, filename)
                     print(f"File name after conversion: {filename}")
 
@@ -171,6 +146,7 @@ def move_to_folder(dest_directory, charaname, extension):
                     move_and_rename_file(source_file, charaname, destination_file)
             time.sleep(0.5)
         msg = "Success"
+        
     except Exception as e:
         print(f"Error: {e}")
         msg = "Error"

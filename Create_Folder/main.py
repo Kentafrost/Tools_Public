@@ -111,6 +111,11 @@ if __name__ == "__main__":
     sheet_name_list = []
     sheets = workbook.worksheets()
     
+    if not sheets:
+        logging.error("No sheets found in the workbook.")
+        print("No sheets found in the workbook.")
+        os._exit(1)
+    
     # make list with all sheet names
     for sheet in sheets:
         sheet_name_list.append(sheet.title)
@@ -123,14 +128,13 @@ if __name__ == "__main__":
         
         list = main(sheet, workbook, remote_chk)
         
-        logging.info(f"Processing {sheet} is complete.")
         print(list[0])
-        
         time.sleep(3)
         
         msg_list.append(list[0])
         # make the base paths list in google spreadsheet
         folder_list.append(list[1])
+        logging.info(f"Processing {sheet} is complete.")
             
     message = str(msg_list).encode('utf-8').decode('utf-8')
     print(message)
@@ -157,7 +161,7 @@ if __name__ == "__main__":
     
     try:
         ssm_client = boto3.client('ssm', region_name='ap-southeast-2')
-        common_tool.send_mail(ssm_client, msg_list) # if required
+        common_tool.send_mail(ssm_client, msg_list)
     except Exception as e:
         print(f"Error sending email: {e}")
         logging.error(f"Error sending email: {e}")
@@ -168,4 +172,4 @@ if __name__ == "__main__":
 
     os.system("shutdown /s /t 1800")
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    logging.info(f"{current_time}: Shutdown command executed and successfully completed.")
+    logging.info(f"{current_time}: Shutdown command executed. The system will shut down in 30 minutes.")

@@ -12,6 +12,7 @@ import time
 import logging
 
 def get_chara_name_between(chara_name, pattern):
+    
     match = re.search(pattern, chara_name)
     if match:
         return match.group(1)
@@ -20,6 +21,7 @@ def get_chara_name_between(chara_name, pattern):
 
 # Check if the folder exists, then delete it(if nesessary, comment in)
 def delete_path(folder_path, word):
+    
     print(f'{folder_path}\{word}')
     
     # if os.path.exists(f'{folder_path}\{word}') and os.path.isdir(f'{folder_path}\{word}'):
@@ -45,8 +47,7 @@ def send_mail(client, msg_list):
 
     except Exception as e:
         logging.error('メールの内容をSSMから取得できませんでした。{}'.format(e))
-    
-    
+
     try:
         message = f"Subject: {subject}\nTo: {to_address}\nFrom: {from_address}\n\n{bodyText}".encode('utf-8') # メールの内容をUTF-8でエンコード
 
@@ -57,6 +58,7 @@ def send_mail(client, msg_list):
                 smtp_server.sendmail(from_address, to_address, message)
             print("gmail送信処理完了。")
             logging.info('正常にgmail送信完了')
+            
         elif "outlook.com" in to_address:
             port = 587
             with smtplib.SMTP('smtp.office365.com', port) as smtp_server:
@@ -68,12 +70,12 @@ def send_mail(client, msg_list):
             
     except Exception as e:
         logging.error('メール送信処理でエラーが発生しました。{}'.format(e))
-    else:
-        logging.info('メール送信処理を中止します。')
 
 
 def name_converter(source_fold, filename):
+    
     del_word = " - Made with Clipchamp"
+    
     if del_word in filename:
         # remove the word from the filename(just variable)
         new_file_name = filename.replace(del_word, "") 
@@ -85,14 +87,16 @@ def name_converter(source_fold, filename):
         
         print(f"Clipchamp detected in filename {filename}")
         print(f'Renamed: {old_path} -> {new_path}')
-        return new_file_name # name after changing
+        return new_file_name
+    
     else:
-        print("Clipchamp not detected in filename")
-        return filename # return original name
+        print(f"No {del_word} in {filename}")
+        return filename
 
 
 # check sheet with certain name exists in a google spreadsheet
 def check_sheet_exists(sheet_name, workbook):
+    
     sheets = workbook.worksheets()
     
     chk = False
@@ -111,6 +115,7 @@ def check_sheet_exists(sheet_name, workbook):
 
 # all file in each game videos folders and write to gsheet
 def listup_all_files(folder_path, sheet):
+    
     print(sheet.title)
     sheet.clear()
     
