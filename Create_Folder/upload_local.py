@@ -29,8 +29,11 @@ def folder_path_create(sheet_name, chara_name, base_folder, workbook):
             print(f"Error retrieving title from SSM: {e}")
             print("Stop the process.")
             os._exit(1)
+    
+    title5 = ssm_client.get_parameter(Name='Title5', WithDecryption=True)['Parameter']['Value']
+    title8 = ssm_client.get_parameter(Name='Title8', WithDecryption=True)['Parameter']['Value']
 
-    if "【" in chara_name and sheet_name == "KFantasy":
+    if "【" in chara_name and sheet_name == title5:
         pattern = r"【(.*)】"
         extract_txt = common_tool.get_chara_name_between(chara_name, pattern)
         chara_name = chara_name.replace(f"【{extract_txt}】", "")
@@ -41,11 +44,11 @@ def folder_path_create(sheet_name, chara_name, base_folder, workbook):
         extract_txt = extract_txt.group(1)
         chara_name = chara_name.replace(f"({extract_txt})", "")
         
-    elif "【" in chara_name and not sheet_name == "KFantasy" and not "テンパラ" in sheet_name  or "天啓" in sheet_name:
+    elif "【" in chara_name and not sheet_name == title5:
         pattern = r"【(.*)】"
         chara_name = common_tool.get_chara_name_between(chara_name, pattern)
         
-    elif "テンパラ" == sheet_name or "天啓" == sheet_name:
+    elif sheet_name == title8:
         match = re.search(r"】(.+)", chara_name)  # 「】」の後の文字を取得
         chara_name = match.group(1) if match else ""
         chara_name = re.sub(r"\(.*?\)", "", chara_name) # ()内の文字を削除

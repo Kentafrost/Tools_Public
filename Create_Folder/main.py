@@ -85,20 +85,13 @@ def main(sheet_name, workbook, remote_chk):
 
 
 if __name__ == "__main__":
+
+    script_name = "Create_Folder"    
+    common.import_log(script_name)
     
-    # parent directory
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     current_time = time.strftime("%Y%m%d_%H%M%S")
-    parent_dir_name = os.path.basename(parent_dir)
-    os.makedirs(f"{parent_dir}\\log\\Create_Folder\\{current_time}", exist_ok=True)
-
-    script_name = "Create_Folder"
-
-    logging.basicConfig(filename=f"{parent_dir}\\log\\{script_name}\\{current_time}_task.log", 
-                        level=logging.INFO, 
-                        format='%(asctime)s - %(levelname)s - %(message)s')
-    
     logging.info(f"{current_time}: Script({script_name}) started.")
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     config = read_config(f'{current_dir}\\config.txt')
 
@@ -127,8 +120,7 @@ if __name__ == "__main__":
     folder_list = []
 
     for sheet in sheet_name_list:
-        if not sheet == "KFantasy":
-            continue
+        
         list = main(sheet, workbook, remote_chk)
         
         logging.info(f"Processing {sheet} is complete.")
@@ -174,6 +166,6 @@ if __name__ == "__main__":
     print(f"{current_time}: All processes are complete.")
     logging.info(f"{current_time}: All processes are complete.")
 
-    os.system("shutdown /s /t 0")
+    os.system("shutdown /s /t 1800")
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     logging.info(f"{current_time}: Shutdown command executed and successfully completed.")
