@@ -1,3 +1,4 @@
+import shutil
 import gspread
 import os, re, logging
 import smtplib
@@ -22,16 +23,21 @@ def get_chara_name_between(chara_name, pattern):
 # Check if the folder exists, then delete it(if nesessary, comment in)
 def delete_path(folder_path, word):
     
-    print(f'{folder_path}\{word}')
+    delete_fold = f'{folder_path}\{word}'
+
+    if os.path.exists(delete_fold) and os.path.isdir(delete_fold):
+        try:
+            if "(" in delete_fold or ")" in delete_fold or "[" in delete_fold or "]" in delete_fold:
+                check = input(f"Folder '{delete_fold}' contains invalid characters. Do you want to delete it? (y/n): ")
+                if check.lower() == "y":
+                    shutil.rmtree(delete_fold)  # Deletes the folder and its contents
+                    logging.info(f"Folder '{delete_fold}' has been deleted.")
     
-    # if os.path.exists(f'{folder_path}\{word}') and os.path.isdir(f'{folder_path}\{word}'):
-    #     try:
-    #         shutil.rmtree(f'{folder_path}\{word}')  # Deletes the folder and its contents
-    #         print(f"Folder '{folder_path}\{word}' has been deleted.")
-    #     except Exception as e:
-    #         print(f"Failed to delete '{folder_path}\{word}': {e}")
-    # else:
-    #     print(f"Folder '{folder_path}\{word}' does not exist at the specified path.")
+        except Exception as e:
+            logging.error(f"Failed to delete '{delete_fold}': {e}")
+    
+    else:
+        logging.warning(f"Folder '{folder_path}\{word}' does not exist at the specified path.")
 
 def send_mail(client, msg_list):
     

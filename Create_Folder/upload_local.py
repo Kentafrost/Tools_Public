@@ -18,20 +18,19 @@ def folder_path_create(sheet_name, chara_name, base_folder, workbook):
         extract_txt = common_tool.get_chara_name_between(chara_name, pattern)
         chara_name = chara_name.replace(f"【{extract_txt}】", "")
         
-    elif "(" in chara_name:
-        pattern = r"((.*))"
-        extract_txt = re.search(r"\((.*?)\)", chara_name)
-        extract_txt = extract_txt.group(1)
-        chara_name = chara_name.replace(f"({extract_txt})", "")
-        
-    elif "【" in chara_name and not sheet_name == title5:
-        pattern = r"【(.*)】"
-        chara_name = common_tool.get_chara_name_between(chara_name, pattern)
-        
     elif sheet_name == title8:
         match = re.search(r"】(.+)", chara_name)  # 「】」の後の文字を取得
-        chara_name = match.group(1) if match else ""
-        chara_name = re.sub(r"\(.*?\)", "", chara_name) # ()内の文字を削除
+        if match:
+            chara_name = match.group(1)
+            chara_name = re.sub(r'（.*?）|\(.*?\)', '', chara_name)  # 括弧内削除
+    
+    elif "【" in chara_name and not sheet_name == title5 and not sheet_name == title8:
+        pattern = r"【(.*)】"
+        chara_name = common_tool.get_chara_name_between(chara_name, pattern)
+    
+    if "(" in chara_name or "（" in chara_name:
+        chara_name = re.sub(r'（.*?）|\(.*?\)', '', chara_name)
+
         
     destination_folder = f'{base_folder}\{chara_name}'
     destination_folder = destination_folder.replace(" ", "")
@@ -39,41 +38,18 @@ def folder_path_create(sheet_name, chara_name, base_folder, workbook):
     time.sleep(0.5)
     return destination_folder
 
-    # if "【" in chara_name and sheet_name == title:
-    #     pattern = r"【(.*)】"
-    #     extract_txt = common_tool.get_chara_name_between(chara_name, pattern)
-    #     chara_name = chara_name.replace(f"【{extract_txt}】", "")
-        
-    # elif "(" in chara_name:
-    #     pattern = r"((.*))"
-    #     extract_txt = re.search(r"\((.*?)\)", chara_name)
-    #     extract_txt = extract_txt.group(1)
-    #     chara_name = chara_name.replace(f"({extract_txt})", "")
-        
-    # elif "【" in chara_name and not sheet_name == title and not title in sheet_name:
-    #     pattern = r"【(.*)】"
-    #     chara_name = common_tool.get_chara_name_between(chara_name, pattern)
-        
-    # elif title == sheet_name:
-    #     match = re.search(r"】(.+)", chara_name)
-    #     chara_name = match.group(1) if match else ""
-    #     chara_name = re.sub(r"\(.*?\)", "", chara_name)
-
-    # destination_folder = f'{base_folder}\{chara_name}'
-    # destination_folder = destination_folder.replace(" ", "")
     
 # create folder, if it exists already, then nothing happens. Files in a folder untouched
 def create_folder(folder_path):
     
-    print('--------------------------------')
-    print(f'Folder name: {folder_path}')
-    print('--------------------------------')
-    
-    time.sleep(0.5)
-
     try:
-        os.makedirs(rf"{folder_path}", exist_ok=True)
-        logging.info(f"Folder created: {folder_path}")
+        if "(" in folder_path or ")" in folder_path:
+            logging.info(f"Invalid name: {folder_path}")
+            print(f"Invalid name: {folder_path}")
+        else:
+            os.makedirs(rf"{folder_path}", exist_ok=True)
+            logging.info(f"Folder created: {folder_path}")
+            
     except Exception as e:
         logging.error(f"Error creating folder: {e}")
 
@@ -101,6 +77,7 @@ def move_and_rename_file(src_file, chara_name, dest_folder):
         print(dest_path)
         shutil.move(src_file, dest_path)
         logging.info(f"Moved file from {src_file} to {dest_path}")
+        
     except Exception as e:
         logging.error(f"Error moving file: {e}")
         logging.info(f"Failed to move file from {src_file} to {dest_path}")
@@ -123,23 +100,18 @@ def move_to_folder(dest_directory, charaname, extension):
         for filename in os.listdir(source_fold):
             if filename.endswith(extension):
                 chk_name = filename.replace(extension, "")
-                print(f"charaname: {chk_name} in {charaname}")
-                
+                print(f"charaname: {charaname} in {chk_name}")
+
                 # check if files name ends with mp4 includes characters name in csv name
-                if charaname in chk_name: 
+                if charaname in chk_name:
                     print(f"Found file: {filename}")
                     source_file = f'{source_fold}\{filename}'
                     
                     filename = common_tool.name_converter(source_fold, filename)
                     print(f"File name after conversion: {filename}")
 
-                    try:
-                        source_file = rf'{source_fold}{filename}' # files path where you want to move from
-                        destination_file = f'{dest_directory}\\' # To directory with character name
-                    except Exception as e:
-                        print(f"Error: {e}")
-                        print(f"Source file: {source_file} To")
-                        print(f"Destination folder: {destination_file}")
+                    source_file = rf'{source_fold}{filename}' # files path where you want to move from
+                    destination_file = f'{dest_directory}\\' # To directory with character name
                         
                     # Check if the file already exists in the destination folder
                     # If it does, rename the file

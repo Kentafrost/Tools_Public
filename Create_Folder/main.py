@@ -1,3 +1,4 @@
+import concurrent
 import pandas as pd
 import time
 import os, sys
@@ -45,7 +46,7 @@ def main(sheet_name, workbook, remote_chk):
 
             upload_local.create_folder(destination_folder)
             result = upload_local.move_to_folder(destination_folder, chara_name, extension)
-            # delete_path(f'{destination_folder}', chara_name) # to delete unnecessary folder
+            common_tool.delete_path(f'{destination_folder}', chara_name) # to delete unnecessary folder
 
             # case 2: google drive
             # base_gdrive_path = base_path.replace("D:", "G:\My Drive\Entertainment")
@@ -82,6 +83,14 @@ def main(sheet_name, workbook, remote_chk):
         msg = f"{sheet_name}' 処理失敗"
         logging.info(f"Sheet name({sheet_name}): 処理失敗")
     return msg, base_path
+
+
+def parallel_process_sheet(sheet):
+    
+    result = main(sheet, workbook, remote_chk)
+    logging.info(f"Processing {sheet} is complete.")
+    
+    return result
 
 
 if __name__ == "__main__":
@@ -124,17 +133,15 @@ if __name__ == "__main__":
     msg_list = []
     folder_list = []
 
-    for sheet in sheet_name_list:
-        
+    #for sheet in sheet_name_list:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        result = list(executor.map(parallel_process_sheet, sheet_name_list))
+        # Get the result from the future
+        logging.info(f"Processing {sheet} in parallel.")
         list = main(sheet, workbook, remote_chk)
         
-        print(list[0])
-        time.sleep(3)
-        
-        msg_list.append(list[0])
-        # make the base paths list in google spreadsheet
-        folder_list.append(list[1])
-        logging.info(f"Processing {sheet} is complete.")
+    msg_list.append(r[0] for r in result)
+    folder_list.append(r[1] for r in result)
             
     message = str(msg_list).encode('utf-8').decode('utf-8')
     print(message)
