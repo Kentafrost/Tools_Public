@@ -30,22 +30,6 @@ def delete_path(folder_path, word):
     #         print(f"Failed to delete '{folder_path}\{word}': {e}")
     # else:
     #     print(f"Folder '{folder_path}\{word}' does not exist at the specified path.")
-    
-def google_authorize():
-    # Set up authentication
-    try:
-        scope = [
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
-        credentials = Credentials.from_service_account_file("G:\My Drive\Tool\credentials.json", scopes=scope)
-        service = build('drive', 'v3', credentials=credentials)
-            
-        # Authorize the gspread client
-        gc = gspread.authorize(credentials)
-        return gc
-    except Exception as e:
-        logging.error('Googleの認証処理でエラーが発生しました。{}'.format(e))
 
 def send_mail(client, msg_list):
     

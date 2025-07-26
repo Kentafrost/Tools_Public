@@ -1,0 +1,2 @@
+flg_filepath=n
+remote_chk=n
