@@ -21,11 +21,9 @@ def get_chara_name_between(chara_name, pattern):
 
 
 # Check if the folder exists, then delete it(if nesessary, comment in)
-def delete_path(folder_path, word):
+def delete_path(delete_fold):
     
-    delete_fold = f'{folder_path}\{word}'
-
-    if os.path.exists(delete_fold) and os.path.isdir(delete_fold):
+    if os.path.exists(delete_fold) or os.path.isdir(delete_fold):
         try:
             if "(" in delete_fold or ")" in delete_fold or "[" in delete_fold or "]" in delete_fold:
                 check = input(f"Folder '{delete_fold}' contains invalid characters. Do you want to delete it? (y/n): ")
@@ -37,26 +35,27 @@ def delete_path(folder_path, word):
             logging.error(f"Failed to delete '{delete_fold}': {e}")
     
     else:
-        logging.warning(f"Folder '{folder_path}\{word}' does not exist at the specified path.")
+        logging.warning(f"Folder '{delete_fold}' does not exist at the specified path.")
 
 def send_mail(client, msg_list):
     
+    import logging
+    import smtplib
+
     logging.info('メール送信処理を開始します。')
     try:
         subject = "Report"
         bodyText = "Here's the report:\n" + "\n" + "\n".join(map(str, msg_list))
-        
         # メールの内容(SSMから取得)
         from_address = client.get_parameter(Name='my_main_gmail_address', WithDecryption=True)['Parameter']['Value']
-        from_pw = client.get_parameter(Name='my_main_gmail_password', WithDecryption=True)['Parameter']['Value']  
+        from_pw = client.get_parameter(Name='my_main_gmail_password', WithDecryption=True)['Parameter']['Value']
         to_address = from_address
-
     except Exception as e:
         logging.error('メールの内容をSSMから取得できませんでした。{}'.format(e))
+        return
 
     try:
-        message = f"Subject: {subject}\nTo: {to_address}\nFrom: {from_address}\n\n{bodyText}".encode('utf-8') # メールの内容をUTF-8でエンコード
-
+        message = f"Subject: {subject}\nTo: {to_address}\nFrom: {from_address}\n\n{bodyText}".encode('utf-8')
         if "gmail.com" in to_address:
             port = 465
             with smtplib.SMTP_SSL('smtp.gmail.com', port) as smtp_server:
@@ -64,18 +63,20 @@ def send_mail(client, msg_list):
                 smtp_server.sendmail(from_address, to_address, message)
             print("gmail送信処理完了。")
             logging.info('正常にgmail送信完了')
-            
         elif "outlook.com" in to_address:
             port = 587
             with smtplib.SMTP('smtp.office365.com', port) as smtp_server:
-                smtp_server.starttls()  # Enable security FIRST
-                smtp_server.login(from_address, from_pw)  # Then log in
+                smtp_server.starttls()
+                smtp_server.login(from_address, from_pw)
                 smtp_server.sendmail(from_address, to_address, message)
             print("Outlookメール送信処理完了。")
             logging.info('Outlookメール送信完了')
-            
+        else:
+            logging.error(f"未対応のメールアドレスドメイン: {to_address}")
+            print(f"未対応のメールアドレスドメイン: {to_address}")
     except Exception as e:
         logging.error('メール送信処理でエラーが発生しました。{}'.format(e))
+        print(f"メール送信処理でエラーが発生しました: {e}")
 
 
 def name_converter(source_fold, filename):

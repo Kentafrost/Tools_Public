@@ -46,7 +46,7 @@ def main(sheet_name, workbook, remote_chk):
 
             upload_local.create_folder(destination_folder)
             result = upload_local.move_to_folder(destination_folder, chara_name, extension)
-            common_tool.delete_path(f'{destination_folder}', chara_name) # to delete unnecessary folder
+            common_tool.delete_path(destination_folder) # to delete unnecessary folder
 
             # case 2: google drive
             # base_gdrive_path = base_path.replace("D:", "G:\My Drive\Entertainment")
@@ -137,13 +137,12 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor() as executor:
         result = list(executor.map(parallel_process_sheet, sheet_name_list))
         # Get the result from the future
-        logging.info(f"Processing {sheet} in parallel.")
+        logging.info(f"Processing sheets in parallel.")
         
-    msg_list.append(r[0] for r in result)
-    folder_list.append(r[1] for r in result)
+    msg_list.extend(r[0] for r in result)
+    folder_list.extend(r[1] for r in result)
             
-    message = str(msg_list).encode('utf-8').decode('utf-8')
-    print(message)
+    print(f"Processing results: {msg_list}")
     
     # save files path in google spreadsheet
     file_workbook = gc.open("file_list")
@@ -176,6 +175,6 @@ if __name__ == "__main__":
     print(f"{current_time}: All processes are complete.")
     logging.info(f"{current_time}: All processes are complete.")
 
-    os.system("shutdown /s /t 1800")
-    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    logging.info(f"{current_time}: Shutdown command executed. The system will shut down in 30 minutes.")
+    # os.system("shutdown /s /t 1800")
+    # current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # logging.info(f"{current_time}: Shutdown command executed. The system will shut down in 30 minutes.")
